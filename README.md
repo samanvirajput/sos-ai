@@ -1,15 +1,86 @@
 # SOS AI
 
-> RAG-powered crisis support system with semantic resource matching, multi-tenant PostgreSQL, and row-level security.
+> RAG-powered mental wellness companion — pgvector semantic memory, emotion detection, crisis safety, and Gemini/Ollama LLM inference.
 
-## Overview
-A production-safe crisis support backend using pgvector for semantic similarity search over mental health resources. Built with multi-tenancy, JWT auth, and row-level security from the ground up.
+## Quick Start
 
-## Technical Details
-- **Schema**: 5-table PostgreSQL (users, sessions, messages, resources, logs)
-- **RAG pipeline**: input → embed (768-dim) → cosine ANN via pgvector → context window → LLM → response
-- **Security**: Row-level security (RLS) + JWT auth — multi-tenant safe
-- **Resource matching**: Crisis resources retrieved via semantic similarity, not keyword lookup
+### 1. PostgreSQL + pgvector
+```bash
+docker run -d --name sos-pg \
+  -e POSTGRES_USER=sos -e POSTGRES_PASSWORD=sos -e POSTGRES_DB=sos_ai \
+  -p 5432:5432 pgvector/pgvector:pg16
+```
+
+### 2. Backend
+```bash
+cd backend
+cp .env.example .env          # fill in DATABASE_URL + GEMINI_API_KEY
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn api.main:app --reload --port 8000
+# Schema + crisis resources applied automatically on first startup
+```
+
+### 3. Frontend
+```bash
+cd frontend && npm install && npm run dev
+# → http://localhost:5173
+```
+
+## Architecture
+
+```
+Frontend (React + Vite + Zustand)
+        │  JWT / SSE
+        ▼
+  FastAPI  ──►  Safety detector (offline regex, 3 tiers)
+        │  ──►  Sentiment (distilroberta / keyword fallback)
+        │  ──►  Embeddings (all-mpnet-base-v2, 768-dim)
+        │              │
+        │         pgvector ANN
+        │         (messages + resources)
+        │
+        ├──►  Gemini 1.5 Flash  (primary)
+        └──►  Ollama             (offline fallback)
+```
+
+## Environment Variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `DATABASE_URL` | ✓ | asyncpg-compatible PostgreSQL DSN |
+| `JWT_SECRET` | ✓ | Random secret for JWT signing |
+| `GEMINI_API_KEY` | — | Gemini 1.5 Flash — falls back to Ollama if absent |
+| `OLLAMA_BASE_URL` | — | Default: `http://localhost:11434` |
+| `OLLAMA_MODEL` | — | Default: `llama3` |
+| `EMBEDDING_MODEL` | — | Default: `all-mpnet-base-v2` (768-dim) |
+| `ALLOWED_ORIGINS` | — | CORS origins, comma-separated |
+
+## Project Structure
+
+```
+backend/
+  api/          FastAPI app, routes: /auth /chat /memory /health
+  chat/         engine.py (full pipeline) · prompt_builder.py
+  memory/       retriever.py (pgvector ANN) · store.py (embed+insert)
+  embeddings/   pipeline.py — singleton SentenceTransformer
+  sentiment/    detector.py — emotion classification, offline
+  safety/       detector.py — crisis pattern matching, offline
+  rag/          context_assembler.py
+  db/           schema.sql · connection.py · init.py
+
+frontend/
+  src/
+    components/ Chat/ · Auth/ · Memory/ · Layout/ · Botanical/
+    pages/      Home · AuthPage · ChatPage
+    hooks/      useChat · useAuth · useMemory
+    services/   api.ts (axios+JWT) · chatService · authService
+    store/      authStore (Zustand)
+    types/      shared TypeScript interfaces
+```
 
 ## Stack
-`Python` `PostgreSQL` `pgvector` `FastAPI` `sentence-transformers` `JWT`
+
+`Python 3.11` `FastAPI` `asyncpg` `PostgreSQL` `pgvector`  
+`sentence-transformers` `HuggingFace Transformers` `Gemini 1.5 Flash`  
+`React 18` `TypeScript` `Vite` `Zustand` `Axios`

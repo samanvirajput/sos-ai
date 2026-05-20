@@ -1,0 +1,49 @@
+:root {
+  --bg:               #FFFFFF;
+  --bg-warm:          #FAF7F2;
+  --text:             #1C1A17;
+  --text-soft:        #7A7060;
+  --text-hint:        #A89F90;
+  --terracotta:       #C17A4A;
+  --terracotta-light: #E8C9B0;
+  --cream:            #F5EFE6;
+  --dusty-rose:       #D4A5A0;
+  --sage:             #A8B5A0;
+  --constellation:    #C4B89A;
+  --font-display:     'Playfair Display', Georgia, serif;
+  --font-body:        'Inter', sans-serif;
+  --font-hand:        'Caveat', cursive;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #root {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Scrollbar — minimal */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--terracotta-light); border-radius: 2px; }
+
+/* Typography helpers */
+.display { font-family: var(--font-display); }
+.display-italic { font-family: var(--font-display); font-style: italic; }
+.hand { font-family: var(--font-hand); }
+
+/* Lowercase utility */
+.lower { text-transform: lowercase; }
+
+/* Smooth scroll */
+* { scroll-behavior: smooth; }
+
+/* Link reset */
+a { color: inherit; text-decoration: none; }
+button { background: none; border: none; cursor: pointer; font-family: inherit; }
+textarea, input { font-family: inherit; }
