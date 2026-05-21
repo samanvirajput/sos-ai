@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: sos-ai-db
+    environment:
+      POSTGRES_DB: sos_ai
+      POSTGRES_USER: sos_user
+      POSTGRES_PASSWORD: sos_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/db/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sos_user -d sos_ai"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sos-ai-backend
+    environment:
+      DATABASE_URL: postgresql://sos_user:sos_password@db:5432/sos_ai
+      JWT_SECRET: change-this-in-production
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3}
+      EMBEDDING_MODEL: all-MiniLM-L6-v2
+      EMOTION_MODEL: j-hartmann/emotion-english-distilroberta-base
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - model_cache:/root/.cache/huggingface
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sos-ai-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  model_cache:

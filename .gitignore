@@ -18,3 +18,5 @@ frontend/.vite/
 
 # Models cache
 .cache/
+
+.env.docker.local

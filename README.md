@@ -2,6 +2,36 @@
 
 > RAG-powered mental wellness companion — pgvector semantic memory, emotion detection, crisis safety, and Gemini/Ollama LLM inference.
 
+## Quick Start (Docker -- recommended)
+
+Prerequisites: Docker + Docker Compose installed.
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/samanvirajput/sos-ai
+cd sos-ai
+
+# 2. Add your Gemini API key
+cp .env.docker .env
+# edit .env and set GEMINI_API_KEY
+
+# 3. Start everything
+docker compose up --build
+```
+
+App is live at:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API docs: http://localhost:8000/docs
+
+To stop:
+```bash
+docker compose down        # stop containers
+docker compose down -v     # stop + delete database volume
+```
+
+Note: First build downloads ML models (~400MB). Subsequent builds use the cached model_cache volume.
+
 ## Quick Start
 
 ### 1. PostgreSQL + pgvector
